@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-web-deployment-multi
+  labels: 
+      app  : my-k8s-application
+      env  : prod
+      owner: NikitaMukhametdinov
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      project: cia
+  template:
+    metadata:
+      labels:
+        project: cia # Service will look for those labels
+    spec:
+      containers:
+      - name: cia-web
+        image: adv4000/k8sphp:latest
+        ports: 
+          - containerPort: 80
+      - name: cia-web-apache
+        image: tomcat:8.5.38
+        ports: 
+          - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-single-pod-service
+  labels: 
+    env : production
+    owener: NikitaMukhametdinov
+spec:
+  type: LoadBalancer
+  selector:
+    project: cia # Selecting PODS with those labels
+  ports: 
+    - name      : app-listener
+      protocol  : TCP
+      port      : 80 #port on load balancer
+      targetPort: 80 #port on POD
+    - name      : app-listener-apache
+      protocol  : TCP
+      port      : 8888 #port on load balancer
+      targetPort: 8080 #port on POD
